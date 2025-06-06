@@ -1,9 +1,9 @@
 import uuid
 from datetime import date
+from pathlib import Path
 from app.repositories.car_repository import CarRepository
 from app.repositories.booking_repository import BookingRepository
 from app.models.car import Car
-from app.models.booking import Booking
 from app.dtos.car_dto import CarDTO
 import logging
 

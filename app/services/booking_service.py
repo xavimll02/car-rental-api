@@ -40,6 +40,7 @@ class BookingService:
             customer_email=dto.customer_email,
             total_price=total_price
         )
-        self.booking_repo.create_booking(booking)
-        logger.info(f"Booking successful: {booking.model_dump()}")
-        return booking
+        
+        created_booking = self.booking_repo.create_booking(booking)
+        logger.info(f"Booking successful: {created_booking.model_dump()}")
+        return created_booking

@@ -18,18 +18,23 @@ class BookingRepository:
 
     def _load_bookings(self) -> list[Booking]:
         with open(self.bookings_file, 'r') as f:
-            return json.load(f)
+            bookings_data = json.load(f)
+            return [Booking(**booking) for booking in bookings_data]
 
     def _save_bookings(self, bookings: list[Booking]):
+        bookings_data = []
+        for booking in bookings:
+            booking_dict = booking.model_dump()
+            booking_dict['start_date'] = booking_dict['start_date'].isoformat()
+            booking_dict['end_date'] = booking_dict['end_date'].isoformat()
+            bookings_data.append(booking_dict)
+            
         with open(self.bookings_file, 'w') as f:
-            json.dump(bookings, f, indent=2)
+            json.dump(bookings_data, f, indent=2)
 
     def create_booking(self, booking: Booking) -> Booking:
         bookings = self._load_bookings()
-        booking_dict = booking.model_dump()
-        booking_dict['start_date'] = booking.start_date.isoformat()
-        booking_dict['end_date'] = booking.end_date.isoformat()
-        bookings.append(booking_dict)
+        bookings.append(booking)
         self._save_bookings(bookings)
         return booking
 
@@ -38,10 +43,7 @@ class BookingRepository:
         filtered_bookings = []
         
         for booking in bookings:
-            booking_start = date.fromisoformat(booking['start_date'])
-            booking_end = date.fromisoformat(booking['end_date'])
-            
-            if (booking_start <= end_date and booking_end >= start_date):
-                filtered_bookings.append(Booking(**booking))
+            if (booking.start_date <= end_date and booking.end_date >= start_date):
+                filtered_bookings.append(booking)
         
         return filtered_bookings

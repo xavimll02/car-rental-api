@@ -43,10 +43,19 @@ This architectural approach allows for:
 docker build -t car-rental-api .
 ```
 
-2. Run the container:
+2. Run the container mounting your local data directory:
 ```bash
-docker run -p 8000:8000 car-rental-api
+# For Windows (PowerShell)
+docker run -p 8000:8000 -v "${PWD}/data:/app/data" car-rental-api
+
+# For Linux/macOS
+docker run -p 8000:8000 -v "$(pwd)/data:/app/data" car-rental-api
 ```
+
+This setup mounts your local `data` directory into the container, so all data will be stored directly in your local filesystem. This makes it easy to:
+- Access and backup your data files directly from your local machine
+- Persist data between container restarts
+- Share the same data between local development and Docker environments
 
 ### Running Locally
 
@@ -80,14 +89,9 @@ Tests cover various scenarios including:
 - Date validation
 - Car availability checks
 
-To run the tests:
+To run the tests (includes coverage report):
 ```bash
 pytest
-```
-
-For test coverage report:
-```bash
-pytest --cov
 ```
 
 ## API Documentation

@@ -1,0 +1,282 @@
+openapi: 3.0.3
+info:
+  title: Car Rental API
+  description: A REST API for managing car rentals, including car inventory and bookings
+  version: 0.1.0
+
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+
+tags:
+  - name: cars
+    description: Operations about cars
+  - name: bookings
+    description: Operations about bookings
+  - name: health
+    description: API health check
+
+paths:
+  /health:
+    get:
+      tags:
+        - health
+      summary: Check API health
+      description: Returns the health status of the API
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+
+  /cars:
+    post:
+      tags:
+        - cars
+      summary: Add a new car
+      description: Add a new car to the rental inventory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CarDTO'
+      responses:
+        '200':
+          description: Car successfully added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Car'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    get:
+      tags:
+        - cars
+      summary: Get available cars
+      description: Get a list of cars available for rent on a specific date
+      parameters:
+        - name: date
+          in: query
+          required: true
+          description: Date in YYYY-MM-DD format
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: List of available cars
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Car'
+        '400':
+          description: Invalid date format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /bookings:
+    post:
+      tags:
+        - bookings
+      summary: Create a new booking
+      description: Create a new car rental booking
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookingDTO'
+      responses:
+        '200':
+          description: Booking successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+        '400':
+          description: Invalid request (car not found or booking conflict)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Car:
+      type: object
+      required:
+        - id
+        - brand
+        - model
+        - year
+        - daily_rate
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        brand:
+          type: string
+          example: "Toyota"
+        model:
+          type: string
+          example: "Camry"
+        year:
+          type: integer
+          example: 2023
+        daily_rate:
+          type: number
+          format: float
+          example: 50.00
+        description:
+          type: string
+          example: "Comfortable sedan with great fuel efficiency"
+
+    CarDTO:
+      type: object
+      required:
+        - brand
+        - model
+        - year
+        - daily_rate
+      properties:
+        brand:
+          type: string
+          example: "Toyota"
+        model:
+          type: string
+          example: "Camry"
+        year:
+          type: integer
+          example: 2023
+        daily_rate:
+          type: number
+          format: float
+          example: 50.00
+        description:
+          type: string
+          example: "Comfortable sedan with great fuel efficiency"
+
+    Booking:
+      type: object
+      required:
+        - id
+        - car_id
+        - start_date
+        - end_date
+        - customer_name
+        - customer_email
+        - total_price
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        car_id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        start_date:
+          type: string
+          format: date
+          example: "2024-03-15"
+        end_date:
+          type: string
+          format: date
+          example: "2024-03-20"
+        customer_name:
+          type: string
+          example: "John Doe"
+        customer_email:
+          type: string
+          format: email
+          example: "john.doe@example.com"
+        total_price:
+          type: number
+          format: float
+          example: 250.00
+
+    BookingDTO:
+      type: object
+      required:
+        - car_id
+        - start_date
+        - end_date
+        - customer_name
+        - customer_email
+      properties:
+        car_id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        start_date:
+          type: string
+          format: date
+          example: "2024-03-15"
+        end_date:
+          type: string
+          format: date
+          example: "2024-03-20"
+        customer_name:
+          type: string
+          example: "John Doe"
+        customer_email:
+          type: string
+          format: email
+          example: "john.doe@example.com"
+
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+            - details
+          properties:
+            code:
+              type: string
+              example: "BOOKING_CONFLICT"
+            message:
+              type: string
+              example: "Car with ID abc-123 is already booked during the date range provided"
+            details:
+              type: object
+              example: {
+                "car_id": "abc-123",
+                "conflicting_dates": {
+                  "start_date": "2024-03-15",
+                  "end_date": "2024-03-20"
+                }
+              } 
